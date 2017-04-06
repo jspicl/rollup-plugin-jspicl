@@ -27,9 +27,10 @@ end`;
 
 // const defaultOutput = "bundle.js";
 
-var index = () => ({
+var index = (options = {}) => ({
   transformBundle: function (source) {
-    fs.writeFileSync(path.resolve("build/bundle.js"), source);
+    const { jsOutput = "jsoutput.js" } = options;
+    jsOutput && fs.writeFileSync(path.resolve(jsOutput), source);
 
     const luaCode = jspicl(source)
       .replace(/\$/g, "_")
