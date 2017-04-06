@@ -1,0 +1,16 @@
+{
+  "name": "rollup-plugin-jspicl",
+  "version": "0.0.1",
+  "description": "",
+  "main": "build/plugin.js",
+  "module": "build/plugin.es.js",
+  "scripts": {
+    "start": "rollup -c"
+  },
+  "author": "Agron Kabashi",
+  "license": "MIT",
+  "devDependencies": {
+    "jspicl": "0.0.2",
+    "rollup": "^0.41.6"
+  }
+}
