@@ -13,13 +13,19 @@ npm install rollup-plugin-jspicl --save-dev
 import jspicl from "rollup-plugin-jspicl";
 
 export default {
-  ...
+  entry: "src/game.js",
+  dest: "build/game.lua",
+  format: "es",
   plugins: [
-    ...
+    buble(),
     jspicl()
   ]
 })
 ```
+
+## Options
+#### jsOutput
+`string` **optional** Output the bundled javascript code to a file.
 
 ## Versioning
 This project uses semantic versioning
