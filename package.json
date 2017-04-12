@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-jspicl",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "",
   "main": "build/plugin.js",
   "module": "build/plugin.es.js",
@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "babel-core": "^6.24.0",
-    "jspicl": "^0.1.0",
+    "jspicl": "^0.2.0",
     "mocha": "^3.2.0",
     "rollup": "^0.41.6",
     "sinon": "^2.1.0"
