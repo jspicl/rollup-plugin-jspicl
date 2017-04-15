@@ -7,6 +7,11 @@ This plugin uses jspicl to convert javascript into PICO-8 lua code.
 npm install rollup-plugin-jspicl --save-dev
 ```
 
+## Related projects
+[jspicl](https://github.com/AgronKabashi/jspicl) - A Javascript to PICO-8 Lua transpiler
+
+[jspicl-mario-sample](https://github.com/AgronKabashi/jspicl-mario-sample) - Mario same game using jspicl and rollup-plugin-jspicl
+
 ## Usage
 
 ```js
