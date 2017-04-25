@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-jspicl",
-  "version": "0.0.8",
+  "version": "1.0.0",
   "description": "",
   "main": "build/plugin.js",
   "module": "build/plugin.es.js",
