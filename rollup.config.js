@@ -1,6 +1,6 @@
 export default {
   entry: "src/index.js",
-  external: ["fs", "path", "jspicl", "mkdirp"],
+  external: ["fs", "path", "jspicl", "mkdirp", "columnify"],
   targets: [
     {
       dest: "build/plugin.js",

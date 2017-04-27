@@ -1,6 +1,8 @@
 export const defaultOptions = {
-  jsOutput: undefined,
-  runPico: false
+  jsOutput: false,
+  luaOutput: false,
+  runPico: false,
+  showStats: true
 };
 
 export const defaultGfx = `00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

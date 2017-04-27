@@ -19,7 +19,7 @@ import jspicl from "rollup-plugin-jspicl";
 
 export default {
   entry: "src/game.js",
-  dest: "build/game.lua",
+  dest: "build/game.p8",
   format: "es",
   plugins: [
     buble(),
@@ -29,8 +29,12 @@ export default {
 ```
 
 ## Options
-#### jsOutput
-`string` **optional** Output the bundled javascript code to a file.
+| Property   | Type   | Default | Description |
+|------------|--------|---------|-------------|
+| jsOutput   | string |         | Output generated javascript code to a file. Useful for debugging, use in combination with [astexplorer](http://astexplorer.net). |
+| luaOutput  | string |         | Output generated lua code to a file. |
+| showStats  | bool   | true    | Display useful stats about the generated cartridge |
+| runPico    | bool   | false   | Run cartridge in PICO-8 after it has been generated. **NOT SUPPORTED YET** |
 
 ## Versioning
 This project uses semantic versioning

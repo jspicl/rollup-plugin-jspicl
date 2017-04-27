@@ -1,11 +1,14 @@
+import jspicl from 'jspicl';
 import fs from 'fs';
 import path from 'path';
 import mkdirp from 'mkdirp';
-import jspicl from 'jspicl';
+import columnify from 'columnify';
 
 const defaultOptions = {
-  jsOutput: undefined,
-  runPico: false
+  jsOutput: false,
+  luaOutput: false,
+  runPico: false,
+  showStats: true
 };
 
 const defaultGfx = `00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -305,11 +308,37 @@ const defaultMusic = `00 41424344
 00 41424344
 `;
 
-function getCartDetails (dest) {
+function generateCartridge (lua, cartridgePath) {
+  const {
+    gff = defaultGff,
+    gfx = defaultGfx,
+    music = defaultMusic,
+    map = defaultMap,
+    sfx = defaultSfx
+  } = getCartridgeDetails(cartridgePath);
+
+  return `pico-8 cartridge // http://www.pico-8.com
+version 8
+__lua__
+${lua}
+__gfx__
+${gfx}
+__gff__
+${gff}
+__map__
+${map}
+__sfx__
+${sfx}
+__music__
+${music}
+ `;
+}
+
+function getCartridgeDetails (cartridgePath) {
   const result = {};
 
   try {
-    const contents = fs.readFileSync(path.resolve(dest), { encoding: "utf8" });
+    const contents = fs.readFileSync(path.resolve(cartridgePath), { encoding: "utf8" });
 
     let content, section;
 
@@ -327,44 +356,65 @@ function getCartDetails (dest) {
   return result;
 }
 
-var index = (options = defaultOptions) => ({
-  options: function (rollupOptions) {
-    options.dest = rollupOptions.dest;
-  },
+function logToFile (content, filePath) {
+  mkdirp.sync(path.dirname(filePath));
+  fs.writeFileSync(path.resolve(filePath), content);
+}
 
-  transformBundle: function (source) {
-    const { jsOutput, dest } = options;
-    if (jsOutput) {
-      mkdirp.sync(path.dirname(jsOutput));
-      fs.writeFileSync(path.resolve(jsOutput), source);
+function logStats (lua, cartridge) {
+  const stats = [
+    {
+      label: "Characters",
+      value: lua.length,
+      percent: `${(lua.length * 100 / 65535).toPrecision(1)}%`
+    },
+    // {
+    //   label: "Tokens",
+    //   value: 0,
+    //   percent: `${0 / 8192}%`
+    // },
+    {
+      label: "Filesize",
+      value: `${Math.ceil(cartridge.length / 1024)} KB`
     }
+  ];
 
-    const {
-      gff = defaultGff,
-      gfx = defaultGfx,
-      music = defaultMusic,
-      map = defaultMap,
-      sfx = defaultSfx
-    } = getCartDetails(dest);
+  console.log(columnify(stats, { // eslint-disable-line no-console
+    minWidth: 10,
+    align: "right",
+    dataTransform: value => `\x1b[33m${value}\x1b[0m`,
+    headingTransform: () => "",
+    config: {
+      label: {
+        align: "left",
+        minWidth: 12,
+        dataTransform: value => `\x1b[32m${value}\x1b[0m`
+      }
+    }
+  }));
+}
 
-    const cartridge = `pico-8 cartridge // http://www.pico-8.com
-version 8
-__lua__
-${jspicl(source)}
-__gfx__
-${gfx}
-__gff__
-${gff}
-__map__
-${map}
-__sfx__
-${sfx}
-__music__
-${music}
- `;
+var index = (options = defaultOptions) => {
+  options = Object.assign({}, defaultOptions, options);
 
-    return cartridge;
-  }
-});
+  return {
+    options: rollupOptions => {
+      options.dest = rollupOptions.dest;
+    },
+
+    transformBundle: javascriptCode => {
+      const { dest, luaOutput, jsOutput, showStats } = options;
+
+      const luaCode = jspicl(javascriptCode);
+      const cartridge = generateCartridge(luaCode, dest);
+
+      jsOutput && logToFile(javascriptCode, jsOutput);
+      luaOutput && logToFile(luaCode, luaOutput);
+      showStats && logStats(luaCode, cartridge);
+
+      return cartridge;
+    }
+  };
+};
 
 export default index;
