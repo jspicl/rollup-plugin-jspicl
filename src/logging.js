@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import mkdirp from "mkdirp";
 import columnify from "columnify";
+import { tokenCounter } from "./token-counter";
 
 export {
   logStats,
@@ -14,17 +15,19 @@ function logToFile (content, filePath) {
 }
 
 function logStats (lua, cartridge) {
+  const tokens = tokenCounter(lua);
+
   const stats = [
     {
       label: "Characters",
       value: lua.length,
-      percent: `${(lua.length * 100 / 65535).toPrecision(1)}%`
+      percent: `${~~(lua.length * 100 / 65535)}%`
     },
-    // {
-    //   label: "Tokens",
-    //   value: 0,
-    //   percent: `${0 / 8192}%`
-    // },
+    {
+      label: "Tokens",
+      value: `~${tokens}`,
+      percent: `${~~(tokens * 100 / 8192)}%`
+    },
     {
       label: "Filesize",
       value: `${Math.ceil(cartridge.length / 1024)} KB`

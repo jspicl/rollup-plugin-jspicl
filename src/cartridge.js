@@ -40,6 +40,7 @@ function getCartridgeDetails (cartridgePath) {
 
     let content, section;
 
+    // Extract the contents of each section
     const regex = /__([a-z]+)__\n([\s\S]*?)(?=\n__\w+__\n|\n\n)/g;
     while ([, section, content] = regex.exec(contents) || "") { // eslint-disable-line no-cond-assign
       if (section !== "lua") {
@@ -49,6 +50,7 @@ function getCartridgeDetails (cartridgePath) {
   }
   catch (error) {
     // File probably doesn't exist
+    console.warn("Warning: Could not parse cartridge or no cartridge found"); // eslint-disable-line no-console
   }
 
   return result;
