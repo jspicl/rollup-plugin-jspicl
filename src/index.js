@@ -8,14 +8,14 @@ export default (options = defaultOptions) => {
 
   return {
     options: rollupOptions => {
-      options.output = rollupOptions.output;
+      options.dest = rollupOptions.dest;
     },
 
     transformBundle: javascriptCode => {
-      const { output, luaOutput, jsOutput, showStats } = options;
+      const { dest, luaOutput, jsOutput, showStats } = options;
 
       const luaCode = jspicl(javascriptCode);
-      const cartridge = generateCartridge(luaCode, output.file);
+      const cartridge = generateCartridge(luaCode, dest);
 
       jsOutput && logToFile(javascriptCode, jsOutput);
       luaOutput && logToFile(luaCode, luaOutput);
