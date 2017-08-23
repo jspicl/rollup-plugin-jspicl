@@ -446,14 +446,14 @@ var index = (options = defaultOptions) => {
 
   return {
     options: rollupOptions => {
-      options.dest = rollupOptions.dest;
+      options.output = rollupOptions.output;
     },
 
     transformBundle: javascriptCode => {
-      const { dest, luaOutput, jsOutput, showStats } = options;
+      const { output, luaOutput, jsOutput, showStats } = options;
 
       const luaCode = jspicl(javascriptCode);
-      const cartridge = generateCartridge(luaCode, dest);
+      const cartridge = generateCartridge(luaCode, output.file);
 
       jsOutput && logToFile(javascriptCode, jsOutput);
       luaOutput && logToFile(luaCode, luaOutput);

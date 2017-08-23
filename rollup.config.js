@@ -1,13 +1,13 @@
 export default {
-  entry: "src/index.js",
+  input: "src/index.js",
   external: ["fs", "path", "jspicl", "mkdirp", "columnify"],
-  targets: [
+  output: [
     {
-      dest: "build/plugin.js",
+      file: "build/plugin.js",
       format: "cjs"
     },
     {
-      dest: "build/plugin.es.js",
+      file: "build/plugin.es.js",
       format: "es"
     }
   ]
