@@ -1,4 +1,5 @@
 export const defaultOptions = {
+  cartridgePath: "",
   jsOutput: false,
   luaOutput: false,
   runPico: false,

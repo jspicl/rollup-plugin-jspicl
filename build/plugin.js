@@ -9,6 +9,7 @@ var mkdirp = _interopDefault(require('mkdirp'));
 var columnify = _interopDefault(require('columnify'));
 
 const defaultOptions = {
+  cartridgePath: "",
   jsOutput: false,
   luaOutput: false,
   runPico: false,
@@ -445,16 +446,16 @@ function logStats (lua, cartridge) {
 var index = function (customizedOptions) {
   const options = Object.assign({}, defaultOptions, customizedOptions);
 
-  return {
-    options: rollupOptions => {
-      options.dest = rollupOptions.dest;
-    },
+  if (!options.cartridgePath) {
+    throw new Error("The 'cartridgePath' property is missing.");
+  }
 
+  return {
     transformBundle: javascriptCode => {
-      const { dest, luaOutput, jsOutput, showStats } = options;
+      const { cartridgePath, luaOutput, jsOutput, showStats } = options;
 
       const luaCode = jspicl(javascriptCode);
-      const cartridge = generateCartridge(luaCode, dest);
+      const cartridge = generateCartridge(luaCode, cartridgePath);
 
       jsOutput && logToFile(javascriptCode, jsOutput);
       luaOutput && logToFile(luaCode, luaOutput);
