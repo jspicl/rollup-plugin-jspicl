@@ -1,9 +1,12 @@
 {
   "name": "rollup-plugin-jspicl",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Rollup plugin for generating PICO 8 cartridges. Transpiles javascript into PICO-8 lua code.",
+  "main": "build/plugin.js",
   "module": "src/index.js",
   "scripts": {
+    "start": "rollup -c",
+    "prepublish": "npm start -s",
     "test": "mocha --compilers js:babel-core/register"
   },
   "author": "Agron Kabashi",
@@ -18,6 +21,7 @@
     "babel-eslint": "^8.0.2",
     "eslint": "^4.10.0",
     "mocha": "^4.0.1",
+    "rollup": "^0.51.1",
     "sinon": "^4.1.2"
   },
   "dependencies": {
