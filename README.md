@@ -1,5 +1,5 @@
 # rollup-plugin-jspicl
-This plugin uses jspicl to convert javascript into PICO-8 lua code.
+This plugin uses jspicl to convert your JavaScript into a PICO-8 cartridge with lua code.
 
 ## Installation
 
@@ -18,9 +18,11 @@ npm install rollup-plugin-jspicl --save-dev
 import jspicl from "rollup-plugin-jspicl";
 
 export default {
-  entry: "src/game.js",
-  dest: "build/game.p8",
-  format: "es",
+  input: "src/game.js",
+  output: {
+    file: "build/game.p8",
+    format: "es"
+  },
   plugins: [
     buble(),
     jspicl()

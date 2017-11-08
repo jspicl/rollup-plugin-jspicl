@@ -5,6 +5,7 @@ export {
 // Each token is a word (e.g. variable name) or
 // operator. Pairs of brackets, and strings count as 1 token. commas, periods, LOCALs, semi-
 // colons, ENDs, and comments are not counted.
+/* eslint-disable no-multi-spaces */
 const tokens = [
   // general
   "\"[^\"]*\"",       // Strings

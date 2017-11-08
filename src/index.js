@@ -3,8 +3,8 @@ import { defaultOptions } from "./constants";
 import { generateCartridge } from "./cartridge";
 import { logStats, logToFile } from "./logging";
 
-export default (options = defaultOptions) => {
-  options = Object.assign({}, defaultOptions, options);
+export default function (customizedOptions) {
+  const options = Object.assign({}, defaultOptions, customizedOptions);
 
   return {
     options: rollupOptions => {
@@ -24,4 +24,4 @@ export default (options = defaultOptions) => {
       return cartridge;
     }
   };
-};
+}
