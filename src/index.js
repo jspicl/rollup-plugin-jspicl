@@ -7,14 +7,15 @@ export default function (customizedOptions) {
   const options = Object.assign({}, defaultOptions, customizedOptions);
 
   if (!options.cartridgePath) {
-    throw new Error("The 'cartridgePath' property is missing.");
+    throw new Error("Ensure that 'cartridgePath' property in options is set.");
   }
 
   return {
     transformBundle: javascriptCode => {
       const { cartridgePath, luaOutput, jsOutput, showStats } = options;
 
-      const luaCode = jspicl(javascriptCode);
+      const { output, polyfills } = jspicl(javascriptCode);
+      const luaCode = `${polyfills} ${output}`;
       const cartridge = generateCartridge(luaCode, cartridgePath);
 
       jsOutput && logToFile(javascriptCode, jsOutput);

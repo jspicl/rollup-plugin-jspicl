@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-jspicl",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Rollup plugin for generating PICO 8 cartridges. Transpiles javascript into PICO-8 lua code.",
   "main": "build/plugin.js",
   "module": "src/index.js",
@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "columnify": "^1.5.4",
-    "mkdirp": "^0.5.1",
-    "jspicl": "^0.4.1"
+    "jspicl": "^1.0.0",
+    "mkdirp": "^0.5.1"
   }
 }
