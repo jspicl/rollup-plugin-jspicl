@@ -443,7 +443,7 @@ function logStats (lua, cartridge) {
   }));
 }
 
-var index = function (customizedOptions) {
+function index (customizedOptions) {
   const options = Object.assign({}, defaultOptions, customizedOptions);
 
   if (!options.cartridgePath) {
@@ -465,6 +465,6 @@ var index = function (customizedOptions) {
       return cartridge;
     }
   };
-};
+}
 
 module.exports = index;
