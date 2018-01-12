@@ -34,10 +34,19 @@ export default {
 | Property       | Type   | Default | Description |
 |----------------|--------|---------|-------------|
 | cartridgePath  | string |         | Path to cartridge to load sprites, map, music and sfx from. Ideally this should point to the generated cartridge so you can edit the assets directly. However, this setting gives you the option to use a separate cartridge as the source for your assets. |
-| jsOutput       | string |         | Output generated javascript code to a file. Useful for debugging, use in combination with [astexplorer](http://astexplorer.net). |
+| includeBanner  | bool   | true    | Adds a comment at the very top of the generated bundle with jspicl info. |
+| jsOutput       | string |         | Output generated javascript code to a file. Useful for debugging if used in combination with [astexplorer](http://astexplorer.net). |
 | luaOutput      | string |         | Output generated lua code to a file. |
 | showStats      | bool   | true    | Display useful stats about the generated cartridge |
-| runPico        | bool   | false   | Run cartridge in PICO-8 after it has been generated. **NOT SUPPORTED YET** |
+| pico           | object |         | PICO-8 specific options. See table below for details. |
+
+### PICO-8 Options
+| Property            | Type   | Default | Description |
+|---------------------|--------|---------|-------------|
+| autoRun             | bool   | true    | Start up PICO-8 when starting the build with `npm run` |
+| customPicoPath      | string |         | Path to PICO-8. If not specified the default path will be used. |
+| pipeOutputToConsole | bool   | false   | When true, will output `console.log` calls to terminal. |
+| reloadOnSave        | bool | true      | Automatically reload the cart when saving. |
 
 ## Versioning
 This project uses semantic versioning
