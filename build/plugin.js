@@ -3,17 +3,41 @@
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var jspicl = _interopDefault(require('jspicl'));
-var fs = _interopDefault(require('fs'));
 var path = _interopDefault(require('path'));
+var child_process = require('child_process');
+var fs = _interopDefault(require('fs'));
 var mkdirp = _interopDefault(require('mkdirp'));
 var columnify = _interopDefault(require('columnify'));
+
+const pico8PathMap = {
+  win32: "C:\\Program Files (x86)\\PICO-8\\pico8.exe",
+  darwin: "/Applications/PICO-8.app/Contents/MacOS/pico8",
+  linux: "~/pico-8/pico8"
+};
+
+const banner = `--[[
+Generated with jspicl,
+a JavaScript to PICO-8 Lua
+transpiler.
+
+Please report any bugs to:
+https://github.com/AgronKabashi/jspicl/issues
+]]--
+`;
 
 const defaultOptions = {
   cartridgePath: "",
   jsOutput: false,
   luaOutput: false,
-  runPico: false,
-  showStats: true
+  showStats: true,
+  includeBanner: true
+};
+
+const defaultPicoOptions = {
+  autoRun: true,
+  customPicoPath: undefined,
+  pipeOutputToConsole: false,
+  reloadOnSave: true
 };
 
 const defaultGfx = `00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -450,12 +474,17 @@ function index (customizedOptions) {
     throw new Error("Ensure that 'cartridgePath' property in options is set.");
   }
 
+  const picoOptions = Object.assign({}, defaultPicoOptions, options.pico);
+
+  let picoProcess = null;
+
   return {
     transformBundle: javascriptCode => {
       const { cartridgePath, luaOutput, jsOutput, showStats } = options;
 
       const { output, polyfills } = jspicl(javascriptCode);
-      const luaCode = `${polyfills} ${output}`;
+      const jspiclBanner = options.includeBanner && banner || "";
+      const luaCode = `${jspiclBanner} ${polyfills} ${output}`;
       const cartridge = generateCartridge(luaCode, cartridgePath);
 
       jsOutput && logToFile(javascriptCode, jsOutput);
@@ -463,6 +492,35 @@ function index (customizedOptions) {
       showStats && logStats(luaCode, cartridge);
 
       return cartridge;
+    },
+
+    ongenerate: ({ file }) => {
+      if (!picoOptions.autoRun) {
+        return;
+      }
+
+      if (picoProcess) {
+        if (!picoOptions.reloadOnSave) {
+          return;
+        }
+
+        // Currently only MacOS supports auto reloading when saving.
+        process.platform === "darwin" && child_process.execSync(`osascript "${path.join(__dirname, "reload-pico8.scpt")}"`);
+      }
+      else {
+        // Use customized path if available, otherwise fallback to the default one for the current OS
+        const picoPath = picoOptions.customizedOptions || pico8PathMap[process.platform];
+
+        picoProcess = child_process.spawn(picoPath, ["-run", `"${path.join(".", file)}"`], {
+          shell: true,
+          stdio: picoOptions.pipeOutputToConsole ? "inherit" : "pipe"
+        });
+
+        picoProcess.on("close", code => {
+          picoProcess = null;
+          console.log(`Pico-8 process exited with code ${code}`);
+        });
+      }
     }
   };
 }

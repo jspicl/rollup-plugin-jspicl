@@ -1,9 +1,32 @@
+export const pico8PathMap = {
+  win32: "C:\\Program Files (x86)\\PICO-8\\pico8.exe",
+  darwin: "/Applications/PICO-8.app/Contents/MacOS/pico8",
+  linux: "~/pico-8/pico8"
+};
+
+export const banner = `--[[
+Generated with jspicl,
+a JavaScript to PICO-8 Lua
+transpiler.
+
+Please report any bugs to:
+https://github.com/AgronKabashi/jspicl/issues
+]]--
+`;
+
 export const defaultOptions = {
   cartridgePath: "",
   jsOutput: false,
   luaOutput: false,
-  runPico: false,
-  showStats: true
+  showStats: true,
+  includeBanner: true
+};
+
+export const defaultPicoOptions = {
+  autoRun: true,
+  customPicoPath: undefined,
+  pipeOutputToConsole: false,
+  reloadOnSave: true
 };
 
 export const defaultGfx = `00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
