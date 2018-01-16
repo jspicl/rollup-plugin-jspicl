@@ -43,7 +43,7 @@ export default {
 ### PICO-8 Options
 | Property            | Type   | Default | Description |
 |---------------------|--------|---------|-------------|
-| autoRun             | bool   | true    | Start up PICO-8 when starting the build with `npm run` |
+| autoRun             | bool   | true    | Start up PICO-8 when starting the build with `npm start` |
 | customPicoPath      | string |         | Path to PICO-8. If not specified the default path will be used. |
 | pipeOutputToConsole | bool   | false   | When true, will output `console.log` calls to terminal. |
 | reloadOnSave        | bool | true      | Automatically reload the cart when saving. |
