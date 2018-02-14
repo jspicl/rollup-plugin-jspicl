@@ -41,7 +41,7 @@ function getCartridgeDetails (cartridgePath) {
     let content, section;
 
     // Extract the contents of each section
-    const regex = /__([a-z]+)__\n([\s\S]*?)(?=\n__\w+__\n|\n\n)/g;
+    const regex = /__([a-z]+)__\n([\s\S]*?)(?=\n__\w+__\n|\n(\n|$))/g;
     while ([, section, content] = regex.exec(contents) || "") { // eslint-disable-line no-cond-assign
       if (section !== "lua") {
         result[section] = content;
