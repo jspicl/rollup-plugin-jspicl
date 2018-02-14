@@ -334,8 +334,7 @@ const defaultMusic = `00 41424344
 00 41424344
 00 41424344
 00 41424344
-00 41424344
-`;
+00 41424344`;
 
 function generateCartridge (lua, cartridgePath) {
   const {
@@ -360,7 +359,8 @@ __sfx__
 ${sfx}
 __music__
 ${music}
- `;
+
+`;
 }
 
 function getCartridgeDetails (cartridgePath) {
@@ -518,7 +518,7 @@ function index (customizedOptions) {
 
         picoProcess.on("close", code => {
           picoProcess = null;
-          console.log(`Pico-8 process exited with code ${code}`);
+          console.log(`Pico-8 process exited with code ${code}`); // eslint-disable-line no-console
         });
       }
     }
