@@ -56,7 +56,7 @@ export default function (customizedOptions) {
 
         picoProcess.on("close", code => {
           picoProcess = null;
-          console.log(`Pico-8 process exited with code ${code}`);
+          console.log(`Pico-8 process exited with code ${code}`); // eslint-disable-line no-console
         });
       }
     }

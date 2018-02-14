@@ -29,7 +29,8 @@ __sfx__
 ${sfx}
 __music__
 ${music}
- `;
+
+`;
 }
 
 function getCartridgeDetails (cartridgePath) {
