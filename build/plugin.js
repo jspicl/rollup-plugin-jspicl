@@ -423,7 +423,7 @@ const tokens = [
 const regex = new RegExp(`(${tokens})`, "gi");
 
 function tokenCounter (luaCode) {
-  return luaCode.match(regex)
+  return (luaCode.match(regex) || [])
     .filter(token => token !== "local" && token !== "end")
     .length;
 }
