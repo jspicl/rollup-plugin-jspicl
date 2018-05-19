@@ -19,7 +19,8 @@ export const defaultOptions = {
   jsOutput: false,
   luaOutput: false,
   showStats: true,
-  includeBanner: true
+  includeBanner: true,
+  polyfillTransform: undefined
 };
 
 export const defaultPicoOptions = {

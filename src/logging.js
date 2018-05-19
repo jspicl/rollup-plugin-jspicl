@@ -14,8 +14,9 @@ function logToFile (content, filePath) {
   fs.writeFileSync(path.resolve(filePath), content);
 }
 
-function logStats (lua, cartridge) {
+function logStats (lua, polyfillOutput, cartridge) {
   const tokens = tokenCounter(lua);
+  const polyfillTokens = tokenCounter(polyfillOutput);
 
   const stats = [
     {
@@ -27,6 +28,10 @@ function logStats (lua, cartridge) {
       label: "Tokens",
       value: `~${tokens}`,
       percent: `${~~(tokens * 100 / 8192)}%`
+    },
+    {
+      label: "  - Polyfills",
+      value: `~${polyfillTokens}`
     },
     {
       label: "Filesize",

@@ -2,12 +2,12 @@
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var jspicl = _interopDefault(require('jspicl'));
-var path = _interopDefault(require('path'));
-var child_process = require('child_process');
 var fs = _interopDefault(require('fs'));
+var path = _interopDefault(require('path'));
 var mkdirp = _interopDefault(require('mkdirp'));
 var columnify = _interopDefault(require('columnify'));
+var jspicl = _interopDefault(require('jspicl'));
+var child_process = require('child_process');
 
 const pico8PathMap = {
   win32: "C:\\Program Files (x86)\\PICO-8\\pico8.exe",
@@ -30,7 +30,8 @@ const defaultOptions = {
   jsOutput: false,
   luaOutput: false,
   showStats: true,
-  includeBanner: true
+  includeBanner: true,
+  polyfillTransform: undefined
 };
 
 const defaultPicoOptions = {
@@ -432,8 +433,9 @@ function logToFile (content, filePath) {
   fs.writeFileSync(path.resolve(filePath), content);
 }
 
-function logStats (lua, cartridge) {
+function logStats (lua, polyfillOutput, cartridge) {
   const tokens = tokenCounter(lua);
+  const polyfillTokens = tokenCounter(polyfillOutput);
 
   const stats = [
     {
@@ -445,6 +447,10 @@ function logStats (lua, cartridge) {
       label: "Tokens",
       value: `~${tokens}`,
       percent: `${~~(tokens * 100 / 8192)}%`
+    },
+    {
+      label: "  - Polyfills",
+      value: `~${polyfillTokens}`
     },
     {
       label: "Filesize",
@@ -480,16 +486,24 @@ function index (customizedOptions) {
 
   return {
     transformBundle: javascriptCode => {
-      const { cartridgePath, luaOutput, jsOutput, showStats } = options;
+      const {
+        cartridgePath,
+        luaOutput,
+        includeBanner,
+        jsOutput,
+        polyfillTransform,
+        showStats
+      } = options;
 
       const { output, polyfills } = jspicl(javascriptCode);
-      const jspiclBanner = options.includeBanner && banner || "";
-      const luaCode = `${jspiclBanner} ${polyfills} ${output}`;
+      const jspiclBanner = includeBanner && banner || "";
+      const polyfillOutput = polyfillTransform ? polyfillTransform(polyfills) : Object.values(polyfills).join("\n");
+      const luaCode = `${jspiclBanner} ${polyfillOutput} ${output}`;
       const cartridge = generateCartridge(luaCode, cartridgePath);
 
       jsOutput && logToFile(javascriptCode, jsOutput);
       luaOutput && logToFile(luaCode, luaOutput);
-      showStats && logStats(luaCode, cartridge);
+      showStats && logStats(luaCode, polyfillOutput, cartridge);
 
       return cartridge;
     },
@@ -518,7 +532,7 @@ function index (customizedOptions) {
 
         picoProcess.on("close", code => {
           picoProcess = null;
-          console.log(`Pico-8 process exited with code ${code}`); // eslint-disable-line no-console
+          code && console.log(`Pico-8 process exited with code ${code}`); // eslint-disable-line no-console
         });
       }
     }

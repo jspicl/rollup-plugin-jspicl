@@ -18,16 +18,24 @@ export default function (customizedOptions) {
 
   return {
     transformBundle: javascriptCode => {
-      const { cartridgePath, luaOutput, jsOutput, showStats } = options;
+      const {
+        cartridgePath,
+        luaOutput,
+        includeBanner,
+        jsOutput,
+        polyfillTransform,
+        showStats
+      } = options;
 
       const { output, polyfills } = jspicl(javascriptCode);
-      const jspiclBanner = options.includeBanner && banner || "";
-      const luaCode = `${jspiclBanner} ${polyfills} ${output}`;
+      const jspiclBanner = includeBanner && banner || "";
+      const polyfillOutput = polyfillTransform ? polyfillTransform(polyfills) : Object.values(polyfills).join("\n");
+      const luaCode = `${jspiclBanner} ${polyfillOutput} ${output}`;
       const cartridge = generateCartridge(luaCode, cartridgePath);
 
       jsOutput && logToFile(javascriptCode, jsOutput);
       luaOutput && logToFile(luaCode, luaOutput);
-      showStats && logStats(luaCode, cartridge);
+      showStats && logStats(luaCode, polyfillOutput, cartridge);
 
       return cartridge;
     },
@@ -56,7 +64,7 @@ export default function (customizedOptions) {
 
         picoProcess.on("close", code => {
           picoProcess = null;
-          console.log(`Pico-8 process exited with code ${code}`); // eslint-disable-line no-console
+          code && console.log(`Pico-8 process exited with code ${code}`); // eslint-disable-line no-console
         });
       }
     }
