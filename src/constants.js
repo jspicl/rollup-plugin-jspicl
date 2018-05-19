@@ -5,12 +5,12 @@ export const pico8PathMap = {
 };
 
 export const banner = `--[[
-Generated with jspicl,
-a JavaScript to PICO-8 Lua
+generated with jspicl,
+a javascript to pico-8 lua
 transpiler.
 
-Please report any bugs to:
-https://github.com/AgronKabashi/jspicl/issues
+please report any bugs to:
+https://github.com/agronkabashi/jspicl/issues
 ]]--
 `;
 
