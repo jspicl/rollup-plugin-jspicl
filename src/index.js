@@ -28,10 +28,11 @@ export default function (customizedOptions) {
       } = options;
 
       const { output, polyfills } = jspicl(javascriptCode);
-      const jspiclBanner = includeBanner && banner || "";
       const polyfillOutput = polyfillTransform ? polyfillTransform(polyfills) : Object.values(polyfills).join("\n");
-      const luaCode = `${jspiclBanner} ${polyfillOutput} ${output}`;
-      const cartridge = generateCartridge(luaCode, cartridgePath);
+      const luaCode = `${polyfillOutput} ${output}`;
+
+      const jspiclBanner = includeBanner && banner || "";
+      const cartridge = generateCartridge(`${jspiclBanner} ${luaCode}`, cartridgePath);
 
       jsOutput && logToFile(javascriptCode, jsOutput);
       luaOutput && logToFile(luaCode, luaOutput);
