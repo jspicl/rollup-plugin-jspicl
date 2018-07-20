@@ -1,7 +1,7 @@
 export const expected3 = `pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
-  local a = 1
+local a = 1
 __gfx__
 1
 __gff__

@@ -22,19 +22,19 @@ const setup = options => plugin({
 
 describe("rollup-plugin-jspicl", () => {
   it("should only overwrite lua section and leave remaining sections intact", () => {
-    const { transformBundle } = setup({
+    const { transformChunk } = setup({
       cartridgePath: path.resolve(__dirname, "./fixtures/fixture1.txt")
     });
 
-    expect(transformBundle("var a = 1;")).to.equal(results.expected1);
+    expect(transformChunk("var a = 1;").code).to.equal(results.expected1);
   });
 
   it("should add missing sections", () => {
-    const { transformBundle } = setup({
+    const { transformChunk } = setup({
       cartridgePath: path.resolve(__dirname, "./fixtures/fixture2.txt")
     });
 
-    expect(transformBundle("var a = 1;")).to.equal(results.expected2(
+    expect(transformChunk("var a = 1;").code).to.equal(results.expected2(
       defaultGff,
       defaultMap,
       defaultMusic
@@ -42,10 +42,10 @@ describe("rollup-plugin-jspicl", () => {
   });
 
   it("should handle case where cartridge does not end with two newlines", () => {
-    const { transformBundle } = setup({
+    const { transformChunk } = setup({
       cartridgePath: path.resolve(__dirname, "./fixtures/fixture3.txt")
     });
 
-    expect(transformBundle("var a = 1;")).to.equal(results.expected3);
+    expect(transformChunk("var a = 1;").code).to.equal(results.expected3);
   });
 });

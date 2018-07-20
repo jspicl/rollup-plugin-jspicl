@@ -474,18 +474,28 @@ function logStats (lua, polyfillOutput, cartridge) {
 }
 
 function index (customizedOptions) {
-  const options = Object.assign({}, defaultOptions, customizedOptions);
+  const options = {
+    ...defaultOptions,
+    ...customizedOptions
+  };
 
   if (!options.cartridgePath) {
     throw new Error("Ensure that 'cartridgePath' property in options is set.");
   }
 
-  const picoOptions = Object.assign({}, defaultPicoOptions, options.pico);
+  const picoOptions = {
+    ...defaultPicoOptions,
+    ...options.pico
+  };
+
+  const jspiclOptions = {
+    ...options.jspicl
+  };
 
   let picoProcess = null;
 
   return {
-    transformBundle: javascriptCode => {
+    transformChunk (javascriptCode) {
       const {
         cartridgePath,
         luaOutput,
@@ -495,21 +505,23 @@ function index (customizedOptions) {
         showStats
       } = options;
 
-      const { output, polyfills } = jspicl(javascriptCode);
+      const { output, polyfills } = jspicl(javascriptCode, jspiclOptions);
       const polyfillOutput = polyfillTransform ? polyfillTransform(polyfills) : Object.values(polyfills).join("\n");
-      const luaCode = `${polyfillOutput} ${output}`;
+      const luaCode = `${polyfillOutput}${output}`;
 
-      const jspiclBanner = includeBanner && banner || "";
-      const cartridge = generateCartridge(`${jspiclBanner} ${luaCode}`, cartridgePath);
+      const jspiclBanner = includeBanner && `${banner}` || "";
+      const cartridge = generateCartridge(`${jspiclBanner}${luaCode}`, cartridgePath);
 
       jsOutput && logToFile(javascriptCode, jsOutput);
       luaOutput && logToFile(luaCode, luaOutput);
       showStats && logStats(luaCode, polyfillOutput, cartridge);
 
-      return cartridge;
+      return {
+        code: cartridge
+      };
     },
 
-    ongenerate: ({ file }) => {
+    generateBundle ({ file }) {
       if (!picoOptions.autoRun) {
         return;
       }
@@ -520,11 +532,11 @@ function index (customizedOptions) {
         }
 
         // Currently only MacOS supports auto reloading when saving.
-        process.platform === "darwin" && child_process.execSync(`osascript "${path.join(__dirname, "reload-pico8.scpt")}"`);
+        process.platform === "darwin" && child_process.exec(`osascript "${path.join(__dirname, "reload-pico8.applescript")}" "${path.join(__dirname, file).toLowerCase()}"`);
       }
       else {
         // Use customized path if available, otherwise fallback to the default one for the current OS
-        const picoPath = picoOptions.customizedOptions || pico8PathMap[process.platform];
+        const picoPath = picoOptions.customPicoPath || pico8PathMap[process.platform];
 
         picoProcess = child_process.spawn(picoPath, ["-run", `"${path.join(".", file)}"`], {
           shell: true,

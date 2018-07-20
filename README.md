@@ -42,6 +42,7 @@ export default {
 | polyfillTransform | polyfills => string   | undefined | Callback method for modifying the polyfills that are needed. An object hashmap will be passed in where the keys represent the function names and values the lua code. You may replace the existing polyfills with your own versions or even add additional ones. |
 | showStats         | bool                  | true      | Display useful stats about the generated cartridge |
 | pico              | object                |           | PICO-8 specific options. See table below for details. |
+| jspicl            | object                |           | Options to pass into jspicl. See [repo](https://github.com/AgronKabashi/jspicl#usage) for detailed info. |
 
 ### PICO-8 Options
 | Property            | Type   | Default | Description |
