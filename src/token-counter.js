@@ -1,13 +1,8 @@
-export {
-  tokenCounter
-};
-
 // Each token is a word (e.g. variable name) or
-// operator. Pairs of brackets, and strings count as 1 token. commas, periods, LOCALs, semi-
-// colons, ENDs, and comments are not counted.
+// operator. Pairs of brackets, and strings count as 1 token.
+// Commas, periods, LOCALs, semi-colons, ENDs, and comments are not counted.
 /* eslint-disable no-multi-spaces */
 const tokens = [
-  // general
   "\"[^\"]*\"",       // Strings
   "\\d+\\.\\d+",      // floating numbers
   "\\w+",             // words
@@ -36,7 +31,7 @@ const tokens = [
 
 const regex = new RegExp(`(${tokens})`, "gi");
 
-function tokenCounter (luaCode) {
+export function tokenCounter (luaCode) {
   return (luaCode.match(regex) || [])
     .filter(token => token !== "local" && token !== "end")
     .length;

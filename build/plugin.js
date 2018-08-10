@@ -6,14 +6,10 @@ var fs = _interopDefault(require('fs'));
 var path = _interopDefault(require('path'));
 var mkdirp = _interopDefault(require('mkdirp'));
 var columnify = _interopDefault(require('columnify'));
-var jspicl = _interopDefault(require('jspicl'));
+var pngjs = require('pngjs');
 var child_process = require('child_process');
-
-const pico8PathMap = {
-  win32: "C:\\Program Files (x86)\\PICO-8\\pico8.exe",
-  darwin: "/Applications/PICO-8.app/Contents/MacOS/pico8",
-  linux: "~/pico-8/pico8"
-};
+var jspicl = _interopDefault(require('jspicl'));
+var chokidar = _interopDefault(require('chokidar'));
 
 const banner = `--[[
 generated with jspicl,
@@ -27,11 +23,12 @@ https://github.com/agronkabashi/jspicl/issues
 
 const defaultOptions = {
   cartridgePath: "",
+  spritesheetImagePath: "",
+  includeBanner: true,
   jsOutput: false,
   luaOutput: false,
-  showStats: true,
-  includeBanner: true,
-  polyfillTransform: undefined
+  polyfillTransform: undefined,
+  showStats: true
 };
 
 const defaultPicoOptions = {
@@ -40,6 +37,89 @@ const defaultPicoOptions = {
   pipeOutputToConsole: false,
   reloadOnSave: true
 };
+
+const pico8Palette = [
+  {
+    r: 0,
+    g: 0,
+    b: 0
+  },
+  {
+    r: 29,
+    g: 43,
+    b: 83
+  },
+  {
+    r: 126,
+    g: 37,
+    b: 83
+  },
+  {
+    r: 0,
+    g: 135,
+    b: 81
+  },
+  {
+    r: 171,
+    g: 82,
+    b: 54
+  },
+  {
+    r: 95,
+    g: 87,
+    b: 79
+  },
+  {
+    r: 194,
+    g: 195,
+    b: 199
+  },
+  {
+    r: 255,
+    g: 241,
+    b: 232
+  },
+  {
+    r: 255,
+    g: 0,
+    b: 77
+  },
+  {
+    r: 255,
+    g: 163,
+    b: 0
+  },
+  {
+    r: 255,
+    g: 236,
+    b: 39
+  },
+  {
+    r: 0,
+    g: 228,
+    b: 54
+  },
+  {
+    r: 41,
+    g: 173,
+    b: 255
+  },
+  {
+    r: 131,
+    g: 118,
+    b: 156
+  },
+  {
+    r: 255,
+    g: 119,
+    b: 168
+  },
+  {
+    r: 255,
+    g: 204,
+    b: 170
+  }
+];
 
 const defaultGfx = `00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -337,15 +417,14 @@ const defaultMusic = `00 41424344
 00 41424344
 00 41424344`;
 
-function generateCartridge (lua, cartridgePath) {
-  const {
-    gff = defaultGff,
-    gfx = defaultGfx,
-    music = defaultMusic,
-    map = defaultMap,
-    sfx = defaultSfx
-  } = getCartridgeDetails(cartridgePath);
-
+function generateCartridgeContent ({
+  lua = "",
+  gff = defaultGff,
+  gfx = defaultGfx,
+  music = defaultMusic,
+  map = defaultMap,
+  sfx = defaultSfx
+}) {
   return `pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
@@ -364,20 +443,18 @@ ${music}
 `;
 }
 
-function getCartridgeDetails (cartridgePath) {
+function getCartridgeSections (cartridgePath) {
   const result = {};
 
   try {
-    const contents = fs.readFileSync(path.resolve(cartridgePath), { encoding: "utf8" });
+    const contents = fs.readFileSync(path.resolve(cartridgePath), "utf8");
 
     let content, section;
 
     // Extract the contents of each section
     const regex = /__([a-z]+)__\n([\s\S]*?)(?=\n__\w+__\n|\n(\n|$))/g;
     while ([, section, content] = regex.exec(contents) || "") { // eslint-disable-line no-cond-assign
-      if (section !== "lua") {
-        result[section] = content;
-      }
+      result[section] = content;
     }
   }
   catch (error) {
@@ -389,11 +466,10 @@ function getCartridgeDetails (cartridgePath) {
 }
 
 // Each token is a word (e.g. variable name) or
-// operator. Pairs of brackets, and strings count as 1 token. commas, periods, LOCALs, semi-
-// colons, ENDs, and comments are not counted.
+// operator. Pairs of brackets, and strings count as 1 token.
+// Commas, periods, LOCALs, semi-colons, ENDs, and comments are not counted.
 /* eslint-disable no-multi-spaces */
 const tokens = [
-  // general
   "\"[^\"]*\"",       // Strings
   "\\d+\\.\\d+",      // floating numbers
   "\\w+",             // words
@@ -473,6 +549,114 @@ function logStats (lua, polyfillOutput, cartridge) {
   }));
 }
 
+const spritesheetWidth = 128;
+const spritesheetHeight = 128;
+const hexBase = 16;
+const pixelDataSize = 4; // red + green + blue + alpha
+
+const toClosestColor = pixels => (unused, offset) => {
+  const pixelOffset = offset * pixelDataSize;
+  const pixel = {
+    r: pixels[pixelOffset],
+    g: pixels[pixelOffset + 1],
+    b: pixels[pixelOffset + 2] // eslint-disable-line no-magic-numbers
+  };
+
+  let minDistance = Number.MAX_VALUE;
+  let closestPaletteColor = 0;
+  pico8Palette.forEach((color, i) => {
+    const diff = (color.r - pixel.r) ** 2 + (color.g - pixel.g) ** 2 + (color.b - pixel.b) ** 2; // eslint-disable-line no-magic-numbers
+
+    if (diff < minDistance) {
+      minDistance = diff;
+      closestPaletteColor = i;
+    }
+  });
+
+  return closestPaletteColor.toString(hexBase);
+};
+
+function getSpritesheetFromImage (imagePath) {
+  if (!imagePath) {
+    throw new Error("Image path is missing");
+  }
+
+  const stream = fs.createReadStream(imagePath).pipe(new pngjs.PNG());
+
+  return new Promise(resolve => // eslint-disable-line promise/avoid-new
+    stream.on("parsed", () => {
+      if (stream.width !== spritesheetWidth || stream.height !== spritesheetHeight) {
+        throw new Error("The spritesheet must be a 128x128 png image");
+      }
+
+      const pixels = new Array(stream.width * stream.height)
+        .fill(0)
+        .map(toClosestColor(stream.data));
+
+      resolve(new Array(stream.height)
+        .fill(0)
+        .map((unused, offset) => pixels.slice(offset * spritesheetWidth, offset * spritesheetWidth + spritesheetWidth).join("")) // cut the strings so we get stacks of 128 characters
+        .join("\n")
+      );
+    }));
+}
+
+const pico8PathMap = {
+  win32: "C:\\Program Files (x86)\\PICO-8\\pico8.exe",
+  darwin: "/Applications/PICO-8.app/Contents/MacOS/pico8",
+  linux: "~/pico-8/pico8"
+};
+
+function createPico8Launcher ({ autoRun, customPicoPath, reloadOnSave, pipeOutputToConsole }) {
+  let picoProcess = null;
+
+  return cartridgePath => {
+    if (!autoRun || !cartridgePath) {
+      return;
+    }
+
+    if (picoProcess) {
+      if (!reloadOnSave) {
+        return;
+      }
+
+      // Currently only MacOS supports auto reloading when saving.
+      process.platform === "darwin" && child_process.exec(`osascript "${path.join(__dirname, "reload-pico8.applescript")}"`);
+    }
+    else {
+      // Use customized path if available, otherwise fallback to the default one for the current OS
+      const picoPath = customPicoPath || pico8PathMap[process.platform];
+
+      picoProcess = child_process.spawn(picoPath, ["-run", `"${path.join(".", cartridgePath)}"`], {
+        shell: true,
+        stdio: pipeOutputToConsole ? "inherit" : "pipe"
+      });
+
+      picoProcess.on("close", code => {
+        picoProcess = null;
+        code && console.log(`Pico-8 process exited with code ${code}`); // eslint-disable-line no-console
+      });
+    }
+  };
+}
+
+function transpile (javascriptCode, options) {
+  const { includeBanner, polyfillTransform, jspicl: jspiclOptions = {} } = options;
+  const jspiclBanner = includeBanner && `${banner}` || "";
+
+  const { output, polyfills } = jspicl(javascriptCode, jspiclOptions);
+  const polyfillOutput = polyfillTransform ? polyfillTransform(polyfills) : Object.values(polyfills).join("\n");
+  const lua = `${polyfillOutput}${output}`;
+
+  return {
+    lua,
+    polyfillOutput,
+    toString () {
+      return `${jspiclBanner}${lua}`;
+    }
+  };
+}
+
 function index (customizedOptions) {
   const options = {
     ...defaultOptions,
@@ -483,38 +667,53 @@ function index (customizedOptions) {
     throw new Error("Ensure that 'cartridgePath' property in options is set.");
   }
 
+  if (!options.spritesheetImagePath) {
+    throw new Error("Ensure that 'spritesheetImagePath' property in options is set.");
+  }
+
   const picoOptions = {
     ...defaultPicoOptions,
     ...options.pico
   };
 
-  const jspiclOptions = {
-    ...options.jspicl
-  };
-
-  let picoProcess = null;
+  const runPico = createPico8Launcher(picoOptions);
+  let spritesheetWatcher;
 
   return {
-    transformChunk (javascriptCode) {
+    name: "jspicl",
+
+    buildStart () {
+      if (!spritesheetWatcher && this.watcher) {
+        spritesheetWatcher = chokidar.watch(options.spritesheetImagePath);
+        spritesheetWatcher.on("change", () => {
+          this.watcher.tasks.forEach(task => task.invalidate());
+        });
+      }
+    },
+
+    async transformChunk (javascriptCode) {
       const {
         cartridgePath,
-        luaOutput,
-        includeBanner,
         jsOutput,
-        polyfillTransform,
-        showStats
+        luaOutput,
+        showStats,
+        spritesheetImagePath
       } = options;
 
-      const { output, polyfills } = jspicl(javascriptCode, jspiclOptions);
-      const polyfillOutput = polyfillTransform ? polyfillTransform(polyfills) : Object.values(polyfills).join("\n");
-      const luaCode = `${polyfillOutput}${output}`;
+      const transpiledSource = transpile(javascriptCode, options);
+      const cartridgeSections = getCartridgeSections(cartridgePath);
+      const gfxSection = await getSpritesheetFromImage(spritesheetImagePath);
 
-      const jspiclBanner = includeBanner && `${banner}` || "";
-      const cartridge = generateCartridge(`${jspiclBanner}${luaCode}`, cartridgePath);
+      const cartridge = generateCartridgeContent({
+        ...cartridgeSections,
+        lua: transpiledSource,
+        gfx: gfxSection
+      });
 
+      // Statistics
       jsOutput && logToFile(javascriptCode, jsOutput);
-      luaOutput && logToFile(luaCode, luaOutput);
-      showStats && logStats(luaCode, polyfillOutput, cartridge);
+      luaOutput && logToFile(transpiledSource.lua, luaOutput);
+      showStats && logStats(transpiledSource.lua, transpiledSource.polyfillOutput, cartridge);
 
       return {
         code: cartridge
@@ -522,32 +721,7 @@ function index (customizedOptions) {
     },
 
     generateBundle ({ file }) {
-      if (!picoOptions.autoRun) {
-        return;
-      }
-
-      if (picoProcess) {
-        if (!picoOptions.reloadOnSave) {
-          return;
-        }
-
-        // Currently only MacOS supports auto reloading when saving.
-        process.platform === "darwin" && child_process.exec(`osascript "${path.join(__dirname, "reload-pico8.applescript")}" "${path.join(__dirname, file).toLowerCase()}"`);
-      }
-      else {
-        // Use customized path if available, otherwise fallback to the default one for the current OS
-        const picoPath = picoOptions.customPicoPath || pico8PathMap[process.platform];
-
-        picoProcess = child_process.spawn(picoPath, ["-run", `"${path.join(".", file)}"`], {
-          shell: true,
-          stdio: picoOptions.pipeOutputToConsole ? "inherit" : "pipe"
-        });
-
-        picoProcess.on("close", code => {
-          picoProcess = null;
-          code && console.log(`Pico-8 process exited with code ${code}`); // eslint-disable-line no-console
-        });
-      }
+      runPico(file);
     }
   };
 }
