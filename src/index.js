@@ -5,6 +5,7 @@ import { logStats, logToFile } from "./logging";
 import { getSpritesheetFromImage } from "./spritesheet";
 import { createPico8Launcher } from "./pico8-launcher";
 import { transpile } from "./transpile";
+import debounce from "lodash.debounce";
 
 export default function (customizedOptions) {
   const options = {
@@ -34,9 +35,9 @@ export default function (customizedOptions) {
     buildStart () {
       if (!spritesheetWatcher && this.watcher) {
         spritesheetWatcher = chokidar.watch(options.spritesheetImagePath);
-        spritesheetWatcher.on("change", () => {
+        spritesheetWatcher.on("change", debounce(() => {
           this.watcher.tasks.forEach(task => task.invalidate());
-        });
+        }));
       }
     },
 

@@ -10,6 +10,7 @@ var pngjs = require('pngjs');
 var child_process = require('child_process');
 var jspicl = _interopDefault(require('jspicl'));
 var chokidar = _interopDefault(require('chokidar'));
+var debounce = _interopDefault(require('lodash.debounce'));
 
 const banner = `--[[
 generated with jspicl,
@@ -685,9 +686,9 @@ function index (customizedOptions) {
     buildStart () {
       if (!spritesheetWatcher && this.watcher) {
         spritesheetWatcher = chokidar.watch(options.spritesheetImagePath);
-        spritesheetWatcher.on("change", () => {
+        spritesheetWatcher.on("change", debounce(() => {
           this.watcher.tasks.forEach(task => task.invalidate());
-        });
+        }));
       }
     },
 

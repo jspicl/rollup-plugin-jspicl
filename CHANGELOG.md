@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 5.0.1
+*2018-08-10*
+* Bug fix: Watcher would in some cases trigger multiple times when updating the spritesheet.
+
 ## Version 5.0.0
 *2018-08-10*
 * ***\*BREAKING CHANGE\**** Added `spritesheetImagePath` configuration option in order to allow a png file to be used as the PICO-8 spritesheet. The `gfx` section in cartridge will no longer be reused. A watcher will re-build the project whenever the spritesheet is updated.
