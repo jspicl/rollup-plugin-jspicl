@@ -1,11 +1,10 @@
 import { expect } from "chai";
-import path from "path";
+import fs from "fs";
 import plugin from "../src";
-import { defaultGff, defaultMusic, defaultMap } from "../src/constants";
-import * as results from "./expected";
 
 const defaultOptions = {
   luaOutput: false,
+  spritesheetImagePath: `${__dirname}/fixtures/spritesheet.png`,
   includeBanner: false,
   jsOutput: false,
   showStats: false,
@@ -21,31 +20,40 @@ const setup = options => plugin({
 });
 
 describe("rollup-plugin-jspicl", () => {
-  it("should only overwrite lua section and leave remaining sections intact", () => {
+  it("should only overwrite lua section with transpiled code", async () => {
     const { transformChunk } = setup({
-      cartridgePath: path.resolve(__dirname, "./fixtures/fixture1.txt")
+      cartridgePath: `${__dirname}/fixtures/replaceLua.txt`
     });
 
-    expect(transformChunk("var a = 1;").code).to.equal(results.expected1);
+    const result = await transformChunk("var a = 1;");
+    expect(result.code).to.equal(fs.readFileSync(`${__dirname}/expected/replaceLua.txt`, "utf8"));
   });
 
-  it("should add missing sections", () => {
+  it("should add missing sections", async () => {
     const { transformChunk } = setup({
-      cartridgePath: path.resolve(__dirname, "./fixtures/fixture2.txt")
+      cartridgePath: `${__dirname}/fixtures/missingSections.txt`
     });
 
-    expect(transformChunk("var a = 1;").code).to.equal(results.expected2(
-      defaultGff,
-      defaultMap,
-      defaultMusic
-    ));
+    const result = await transformChunk("var a = 1;");
+    expect(result.code).to.equal(fs.readFileSync(`${__dirname}/expected/missingSections.txt`, "utf8"));
   });
 
-  it("should handle case where cartridge does not end with two newlines", () => {
+  it("should handle case where cartridge does not end with two newlines", async () => {
     const { transformChunk } = setup({
-      cartridgePath: path.resolve(__dirname, "./fixtures/fixture3.txt")
+      cartridgePath: `${__dirname}/fixtures/singleNewline.txt`
     });
 
-    expect(transformChunk("var a = 1;").code).to.equal(results.expected3);
+    const result = await transformChunk("var a = 1;");
+    expect(result.code).to.equal(fs.readFileSync(`${__dirname}/expected/singleNewline.txt`, "utf8"));
+  });
+
+  it("includes banner", async () => {
+    const { transformChunk } = setup({
+      includeBanner: true,
+      cartridgePath: `${__dirname}/fixtures/banner.txt`
+    });
+
+    const result = await transformChunk("var a = 1;");
+    expect(result.code).to.equal(fs.readFileSync(`${__dirname}/expected/banner.txt`, "utf8"));
   });
 });

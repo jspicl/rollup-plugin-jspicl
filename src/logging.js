@@ -4,17 +4,12 @@ import mkdirp from "mkdirp";
 import columnify from "columnify";
 import { tokenCounter } from "./token-counter";
 
-export {
-  logStats,
-  logToFile
-};
-
-function logToFile (content, filePath) {
+export function logToFile (content, filePath) {
   mkdirp.sync(path.dirname(filePath));
   fs.writeFileSync(path.resolve(filePath), content);
 }
 
-function logStats (lua, polyfillOutput, cartridge) {
+export function logStats (lua, polyfillOutput, cartridge) {
   const tokens = tokenCounter(lua);
   const polyfillTokens = tokenCounter(polyfillOutput);
 
