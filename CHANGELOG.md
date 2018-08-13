@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 5.0.2
+*2018-04-14*
+* Upgraded to jspicl@2.2.2
+
 ## Version 5.0.1
 *2018-08-10*
 * Bug fix: Watcher would in some cases trigger multiple times when updating the spritesheet.
