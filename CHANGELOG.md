@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 5.1.0
+*2018-10-29*
+* Upgraded to jspicl@2.3.1
+
 ## Version 5.0.3
 *2018-08-15*
 * Upgraded to jspicl@2.2.4
