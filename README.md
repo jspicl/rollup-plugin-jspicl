@@ -1,4 +1,8 @@
-# rollup-plugin-jspicl
+# This project is no longer maintained! [Please use jspicl-cli instead.](https://github.com/jspicl/rollup-plugin-jspicl)
+
+---
+
+## rollup-plugin-jspicl
 This plugin uses jspicl to convert your JavaScript into a PICO-8 cartridge with lua code.
 
 ## Installation
